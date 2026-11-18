@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db/client";
 import { canConnectInstagramAccount } from "@/lib/instagram-accounts";
 import {
   getUserInfo,
-  isProfessionalInstagramAccount,
   listAssignedInstagramAccounts,
   MetaApiError,
   PermissionError,
@@ -45,10 +44,16 @@ function isUniqueConstraintError(error: unknown): boolean {
  *
  * The token is verified before anything is stored: it is used to list the
  * Instagram accounts it covers on graph.facebook.com, the account is
- * resolved (username, account_type) and personal accounts are rejected
- * with the same rule as the Instagram Login callback, then the account is
- * subscribed to webhooks and the token is stored encrypted with the
- * workspace's existing ENCRYPTION_KEY.
+ * resolved (username, name), then the account is subscribed to webhooks
+ * and the token is stored encrypted with the workspace's existing
+ * ENCRYPTION_KEY.
+ *
+ * There is no personal-account check here, unlike the Instagram Login
+ * callback: graph.facebook.com has no account_type field (asking for it
+ * fails the whole call), and it does not need one. Only professional
+ * (Business or Creator) accounts have an IG User node on that host and can
+ * be assigned to a system user, so a personal account is never in the
+ * assigned list and is refused earlier as no_instagram_accounts.
  *
  * The token is write-only: it is never logged, never returned in a
  * response, and the Settings form clears the input after submit. A
@@ -169,24 +174,11 @@ export async function POST(request: NextRequest) {
       chosen = assigned[0];
     }
 
-    // Resolve the account on graph.facebook.com: username, follower count
-    // and, critically, account_type. The ID stored here is the Instagram
-    // professional account ID (the same value webhooks carry as entry.id);
-    // the Instagram internal user_igid is a different number and is never
-    // used by the Graph API.
+    // Resolve the account on graph.facebook.com: username and name. The ID
+    // stored here is the Instagram professional account ID (the same value
+    // webhooks carry as entry.id); the Instagram internal user_igid is a
+    // different number and is never used by the Graph API.
     const userInfo = await getUserInfo(trimmedToken, chosen.id, "facebook");
-
-    if (!isProfessionalInstagramAccount(userInfo)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "personal_account",
-          message:
-            "This Instagram account is a personal account. Switch it to a Business or Creator account first, then reconnect.",
-        },
-        { status: 400 }
-      );
-    }
 
     const instagramId = userInfo.user_id ?? chosen.id;
 

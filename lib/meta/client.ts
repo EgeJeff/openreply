@@ -121,9 +121,6 @@ export interface InstagramUser {
   user_id?: string;
   username: string;
   name?: string;
-  // BUSINESS, MEDIA_CREATOR or PERSONAL. Requested on graph.facebook.com so a
-  // personal account is rejected before its token is stored.
-  account_type?: string;
   profile_picture_url?: string;
   // Current follower total. Point-in-time only — Instagram exposes no history
   // for this field, so long-run trends come from FollowerSnapshot instead.
@@ -727,17 +724,16 @@ export async function getConversationMessages(
 }
 
 /**
- * Whether the connected Instagram account can use the messaging API.
- *
- * Only an explicit PERSONAL is rejected. An absent `account_type` fails open:
- * the field is not returned for every token, and blocking those connects
- * would break accounts that worked before this check existed.
+ * Fields read for an Instagram account on graph.facebook.com. Every one is a
+ * field of the IG User node there. Do not add `account_type` or `user_id`:
+ * they exist only on graph.instagram.com, and requesting an unknown field
+ * makes Meta reject the whole call with "(#100) Tried accessing nonexisting
+ * field". No account-type check is needed on this host: the IG User node
+ * only exists for professional (Business or Creator) accounts, so a
+ * personal account never reaches this call.
  */
-export function isProfessionalInstagramAccount(
-  user: Pick<InstagramUser, "account_type">
-): boolean {
-  return user.account_type !== "PERSONAL";
-}
+export const FACEBOOK_HOST_USER_FIELDS =
+  "id,username,name,profile_picture_url,followers_count";
 
 /**
  * The connected account's profile.
@@ -758,10 +754,7 @@ export async function getUserInfo(
   if (host === "facebook") {
     const id = requireInstagramAccountId(instagramAccountId, "getUserInfo");
     const url = new URL(`${graphBaseFor(host)}/${id}`);
-    url.searchParams.set(
-      "fields",
-      "id,username,name,profile_picture_url,followers_count,account_type"
-    );
+    url.searchParams.set("fields", FACEBOOK_HOST_USER_FIELDS);
     url.searchParams.set("access_token", accessToken);
 
     const response = await fetch(url.toString());

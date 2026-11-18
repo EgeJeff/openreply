@@ -74,7 +74,6 @@ describe("Unified Login host parameterization", () => {
       okJson({
         id: "17841404707268563",
         username: "beaux_viola",
-        account_type: "CREATOR",
       })
     );
 
@@ -87,6 +86,24 @@ describe("Unified Login host parameterization", () => {
     // read user_id (webhook matching, the messaging API).
     expect(user.user_id).toBe("17841404707268563");
     expect(user.username).toBe("beaux_viola");
+  });
+
+  it("requests only fields that exist on graph.facebook.com", async () => {
+    // account_type and user_id exist only on graph.instagram.com. Asking
+    // graph.facebook.com for either fails the whole call with
+    // "(#100) Tried accessing nonexisting field (account_type)".
+    const seen = stubFetch(() =>
+      okJson({ id: "17841404707268563", username: "beaux_viola" })
+    );
+
+    await getUserInfo("suat", "17841404707268563", "facebook");
+
+    const fields = new URL(seen[0].url).searchParams.get("fields");
+    expect(fields?.split(",").sort()).toEqual(
+      ["followers_count", "id", "name", "profile_picture_url", "username"]
+    );
+    expect(fields).not.toContain("account_type");
+    expect(fields).not.toContain("user_id");
   });
 
   it("refuses getUserInfo on graph.facebook.com without an account ID", async () => {

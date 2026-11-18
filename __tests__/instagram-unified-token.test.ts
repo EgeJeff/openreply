@@ -39,10 +39,6 @@ vi.mock("@/lib/db/client", () => ({
 vi.mock("@/lib/meta/client", () => ({
   listAssignedInstagramAccounts: state.listAssigned,
   getUserInfo: state.getUserInfo,
-  // Same rule as the real helper: only PERSONAL is rejected; a missing
-  // account_type fails open.
-  isProfessionalInstagramAccount: (user: { account_type?: string }) =>
-    user.account_type === undefined || user.account_type !== "PERSONAL",
   subscribeInstagramAccountToWebhooks: state.subscribe,
   MetaApiError: state.MetaApiError,
   PermissionError: state.PermissionError,
@@ -87,7 +83,6 @@ beforeEach(() => {
     id: IG_ID,
     user_id: IG_ID,
     username: "beaux_viola",
-    account_type: "CREATOR",
   });
   state.subscribe.mockResolvedValue({ success: true });
   state.canConnect.mockResolvedValue({ allowed: true, reason: null });
@@ -185,7 +180,6 @@ describe("POST /api/instagram/unified-token", () => {
       id: "17841404707268564",
       user_id: "17841404707268564",
       username: "second_account",
-      account_type: "BUSINESS",
     });
 
     const response = await POST(
@@ -215,22 +209,6 @@ describe("POST /api/instagram/unified-token", () => {
       { id: IG_ID, username: "beaux_viola" },
     ]);
     expect(state.getUserInfo).not.toHaveBeenCalled();
-    expectNoWrite();
-  });
-
-  it("rejects personal accounts, like the Instagram Login callback", async () => {
-    state.getUserInfo.mockResolvedValue({
-      id: IG_ID,
-      user_id: IG_ID,
-      username: "beaux_viola",
-      account_type: "PERSONAL",
-    });
-
-    const response = await POST(request({ token: TOKEN }));
-    const payload = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(payload.error).toBe("personal_account");
     expectNoWrite();
   });
 
