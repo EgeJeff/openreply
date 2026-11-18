@@ -89,6 +89,10 @@ export async function GET(request: NextRequest) {
       accessToken: encryptedToken,
       tokenExpiresAt,
       webhookSubscribed,
+      // This path stores an Instagram Login token. If the account was
+      // connected through Unified Login before, clear the flag so its calls
+      // go back to graph.instagram.com and the token is refreshed again.
+      isUnifiedLogin: false,
     };
     const existing = await prisma.instagramAccount.findUnique({ where: { instagramId } });
     if (existing) {

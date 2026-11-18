@@ -468,5 +468,15 @@
   "{name} Campaign Report": "{name} 活動報表",
   "{type} post": "{type} 貼文",
   "”": "」",
-  "← Campaigns": "← 返回活動列表"
+  "← Campaigns": "← 返回活動列表",
+  "Connect account": "連接帳號",
+  "Connect with Unified Login": "使用 Unified Login 連接",
+  "Connected via Unified Login": "透過 Unified Login 連線",
+  "Connecting...": "連線中…",
+  "Could not connect this account. Please try again.": "無法連接此帳號，請再試一次。",
+  "For newer Meta apps that only offer Unified Login. Generate a system-user token in Meta's Unified Login settings and paste it here.": "適用於僅提供 Unified Login 的新版 Meta 應用程式。請在 Meta 的 Unified Login 設定中產生系統使用者權杖，然後貼在這裡。",
+  "Paste the token from Meta": "貼上來自 Meta 的權杖",
+  "System-user token": "系統使用者權杖",
+  "This token covers more than one Instagram account. Pick the account to connect.": "此權杖涵蓋多個 Instagram 帳號，請選擇要連接的帳號。",
+  "Token never expires": "權杖永不過期"
 }

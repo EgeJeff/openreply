@@ -266,6 +266,27 @@ You do not have to do anything here; OpenReply handles it. It is worth understan
 
 Meta's `/me` returns two IDs. The `id` field is app-scoped. The `user_id` field is the Instagram professional account ID. Webhooks put `user_id` in `entry.id`, and the messaging API keys off `user_id` too. OpenReply stores `user_id`, so a fresh connection matches correctly. If you upgraded from a very old build and an account was stored with the wrong ID, disconnect and reconnect it once.
 
+### Newer Meta apps: Unified Login (system-user token)
+
+Meta no longer offers **API setup with Instagram login** to newer apps. The Instagram product shows "API setup with Instagram login is not available for newer apps. Your app uses API setup with Unified login instead.", and there is no Instagram app ID or Instagram app secret anywhere in the console. The OAuth flow in Steps 5 to 7 cannot run for such an app. Connect the account with a pasted system-user token instead. Steps 8 and 9 (webhook and publishing) still apply.
+
+What changes on this path:
+
+- Environment: only `FACEBOOK_APP_SECRET` and `WEBHOOK_VERIFY_TOKEN` from the Meta table are used. `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` do not exist for these apps; leave them unset. Webhook signatures are checked against `FACEBOOK_APP_SECRET`.
+- No OAuth redirect URI (Step 7) is needed, because OpenReply never runs the Instagram Login flow for this account.
+- The token never expires, so the daily token refresh skips it. All API calls for the account go to `graph.facebook.com`.
+
+Setup, as reported by people who got it working (see [issue #104](https://github.com/diwenne/openreply/issues/104)). Meta's console changes often; if a screen differs, stop and compare with that thread rather than guessing:
+
+1. In the Instagram use case, open **API setup with Unified login** and create the configuration. It requires a business portfolio. A portfolio does not need business verification to connect your own accounts.
+2. The configuration needs `instagram_basic`, `instagram_manage_messages` and `instagram_manage_comments`, plus `instagram_manage_insights` for dashboard stats. It also needs **`business_management`**, which the Unified login permission editor does not offer: add the **Facebook Login for Business** product to the app, open **Configurations**, click **Edit** on the same configuration, and add `business_management` in the permissions step. Without it, the token is issued but lists no Instagram account, and OpenReply rejects it with "This token is not linked to any Instagram account".
+3. Generate the token for the account. Treat it like a password: it never expires and acts as the account until revoked in Meta. Never paste it into a chat, screenshot or ticket.
+4. In OpenReply, sign in as a workspace owner or admin, open **Settings**, and paste it under **Connect with Unified Login**. Do this on your deployed app, not a local copy, so the token is encrypted with the production `ENCRYPTION_KEY` and stored where the worker reads it. OpenReply verifies the token on `graph.facebook.com` before storing anything, rejects personal accounts, stores it encrypted, and never shows it again.
+
+Deploy the database migrations (`npm run db:migrate`) before starting the updated web app and worker: this adds the `InstagramAccount.isUnifiedLogin` column, and the Settings page reads it.
+
+Unverified so far: reads (profile, posts, comments, conversations) have been confirmed on this path in issue #104, but nobody had yet confirmed a private reply DM end to end when this section was written. Run the end-to-end test below and check DM Logs before relying on it.
+
 ## Test it end to end
 
 1. Connect the account in Settings. For Zernio, complete the [provider setup](zernio.md). For direct Meta, make sure the account has accepted its tester invite (Step 6) and the app is published (Step 9).

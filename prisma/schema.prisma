@@ -152,6 +152,11 @@ model InstagramAccount {
   accessToken       String
   tokenExpiresAt    DateTime?
   webhookSubscribed Boolean  @default(false)
+  /// Unified Login (Facebook Login for Business) accounts call
+  /// graph.facebook.com with a never-expiring system-user token; Instagram
+  /// Login accounts call graph.instagram.com with a 60-day user token.
+  /// System-user tokens are never refreshed. See docs/setup.md.
+  isUnifiedLogin    Boolean  @default(false)
   connectedAt       DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

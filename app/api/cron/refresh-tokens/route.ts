@@ -33,6 +33,10 @@ export async function GET(request: NextRequest) {
     where: {
       accessToken: { not: "" },
       provider: "META",
+      // Unified Login system-user tokens never expire, and refreshing one
+      // against graph.instagram.com would only fail. They are stored with
+      // tokenExpiresAt null, but say so explicitly rather than rely on it.
+      isUnifiedLogin: false,
       tokenExpiresAt: {
         not: null,
         lte: cutoffDate,

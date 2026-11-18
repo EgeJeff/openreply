@@ -363,7 +363,8 @@ describe("DM Worker — Full Pipeline", () => {
       "decrypted_token",
       "ig_456",
       "comment_555",
-      "Hey commenter_user! Here is the link: https://example.com"
+      "Hey commenter_user! Here is the link: https://example.com",
+      "instagram"
     );
     expect(mockReleaseWorkspaceDMReservation).not.toHaveBeenCalled();
     expect(mockPrisma.dmLog.update).toHaveBeenCalledWith({
@@ -556,7 +557,8 @@ describe("DM Worker — Full Pipeline", () => {
       "decrypted_token",
       "ig_456",
       "comment_555",
-      "Hey there! Here is the link: https://example.com"
+      "Hey there! Here is the link: https://example.com",
+      "instagram"
     );
   });
 
@@ -596,7 +598,8 @@ describe("DM Worker — Full Pipeline", () => {
       [
         { title: "Get offer", url: `http://localhost:3000/r/abc123?r=${token}` },
         { title: "Book a call", url: `http://localhost:3000/r/def456?r=${token}` },
-      ]
+      ],
+      "instagram"
     );
   });
 
@@ -629,7 +632,8 @@ describe("DM Worker — Full Pipeline", () => {
       "comment_555",
       "Follow me first commenter_user, then tap 👇",
       "I'm following ✅",
-      "followcheck:auto_789"
+      "followcheck:auto_789",
+      "instagram"
     );
     expect(mockSendPrivateReplyWithLinkButton).not.toHaveBeenCalled();
     expect(mockSendPrivateReply).not.toHaveBeenCalled();
@@ -670,7 +674,8 @@ describe("DM Worker — Full Pipeline", () => {
           title: "Get offer",
           url: `http://localhost:3000/r/abc123?r=${hashRecipientId(mockJobData.commenterId)}`,
         },
-      ]
+      ],
+      "instagram"
     );
   });
 
@@ -703,7 +708,8 @@ describe("DM Worker — Full Pipeline", () => {
       "comment_555",
       "Hey commenter_user, welcome!",
       "Get the link",
-      "followcheck:auto_789:open"
+      "followcheck:auto_789:open",
+      "instagram"
     );
     // Follow status is verified on the tap, not at comment time.
     expect(mockGetUserFollowStatus).not.toHaveBeenCalled();
@@ -739,7 +745,8 @@ describe("DM Worker — Full Pipeline", () => {
       "decrypted_token",
       "ig_456",
       "commenter_999",
-      "Hey commenter_user! Here is the link: https://example.com"
+      "Hey commenter_user! Here is the link: https://example.com",
+      "instagram"
     );
   });
 
@@ -841,7 +848,8 @@ describe("DM Worker — Full Pipeline", () => {
       "decrypted_token",
       "ig_456",
       "commenter_999",
-      "Hey commenter_user! Here is the link: https://example.com"
+      "Hey commenter_user! Here is the link: https://example.com",
+      "instagram"
     );
   });
 
@@ -1036,7 +1044,8 @@ describe("DM Worker — DM keyword trigger", () => {
       "decrypted_token",
       "ig_456",
       "commenter_999",
-      "Hey commenter_user! Here is the link: https://example.com"
+      "Hey commenter_user! Here is the link: https://example.com",
+      "instagram"
     );
     // Never a private reply — there is no comment to reply to.
     expect(mockSendPrivateReply).not.toHaveBeenCalled();
@@ -1121,7 +1130,8 @@ describe("DM Worker — DM keyword trigger", () => {
       "commenter_999",
       expect.any(String),
       "I'm following ✅",
-      "followcheck:auto_789"
+      "followcheck:auto_789",
+      "instagram"
     );
     expect(mockSendDirectMessage).not.toHaveBeenCalled();
   });
@@ -1585,7 +1595,8 @@ describe("DM Worker — follow-gate re-check", () => {
       "commenter_999",
       expect.any(String),
       expect.any(String),
-      "followcheck:auto_789"
+      "followcheck:auto_789",
+      "instagram"
     );
     expect(mockQueueAdd).not.toHaveBeenCalled();
     // Nor is it a rejection: they were never told to follow before this.
@@ -1621,7 +1632,8 @@ describe("DM Worker — follow re-check acknowledgement", () => {
       "decrypted_token",
       "ig_456",
       "commenter_999",
-      "Dame unos segundos que lo verifico"
+      "Dame unos segundos que lo verifico",
+      "instagram"
     );
     // The re-check is still what decides; the acknowledgement only fills the wait.
     expect(mockQueueAdd).toHaveBeenCalledWith(
